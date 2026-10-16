@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Animation 1400x400</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050510;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .banner-container {
+            width: 1400px;
+            height: 400px;
+            max-width: 100vw; /* Responsive for smaller screens */
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, #090a0f 0%, #100e1e 50%, #050308 100%);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .overlay-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 5rem;
+            margin: 0;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            background: linear-gradient(to right, #fff, #a2d6f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            font-size: 1.8rem;
+            color: #a2d6f9;
+            margin-top: 15px;
+            letter-spacing: 3px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="banner-container">
+        <canvas id="spaceCanvas"></canvas>
+        <div class="overlay-text">
+            <h1>Ai Lab</h1>
+            <p>Any Time Any Where</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('spaceCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set fixed resolution 1400x400 internally
+        const width = 1400;
+        const height = 400;
+        canvas.width = width;
+        canvas.height = height;
+
+        // Variables
+        const stars = [];
+        const shootingStars = [];
+        const numStars = 600;
+        
+        // Mouse interaction for parallax
+        let mouseX = width / 2;
+        let mouseY = height / 2;
+        let targetMouseX = width / 2;
+        let targetMouseY = height / 2;
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            // Scale mouse coordinates to canvas resolution
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            targetMouseX = (e.clientX - rect.left) * scaleX;
+            targetMouseY = (e.clientY - rect.top) * scaleY;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            targetMouseX = width / 2;
+            targetMouseY = height / 2;
+        });
+
+        class Star {
+            constructor() {
+                this.reset();
+                // Randomize initial x position across the whole canvas
+                this.x = Math.random() * width; 
+            }
+
+            reset() {
+                this.x = width + Math.random() * 100; // Start slightly off-screen right
+                this.y = Math.random() * height;
+                this.z = Math.random() * 3 + 0.1; // Depth (1 to 3) determines size and speed
+                this.radius = 1.5 / this.z; // Closer stars are larger
+                this.speed = (5 / this.z) * 0.15; // Closer stars move faster
+                this.alpha = Math.random() * 0.8 + 0.2;
+                this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+                
+                // Color variations (white, slight blue, slight yellow)
+                const colors = ['#ffffff', '#cce0ff', '#ffeebb'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update(parallaxX, parallaxY) {
+                // Move left
+                this.x -= this.speed;
+                
+                // Parallax offset
+                const pX = (parallaxX - width/2) * (0.01 / this.z);
+                const pY = (parallaxY - height/2) * (0.01 / this.z);
+
+                this.x -= pX;
+                this.y -= pY;
+
+                // Twinkle effect
+                this.alpha += this.twinkleSpeed;
+                if (this.alpha >= 1 || this.alpha <= 0.2) {
+                    this.twinkleSpeed *= -1;
+                }
+
+                // Reset if it goes off screen
+                if (this.x < -10 || this.y < -10 || this.y > height + 10) {
+                    this.reset();
+                    // Force start on the right side when resetting naturally
+                    this.x = width + Math.random() * 50;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = Math.max(0, Math.min(1, this.alpha));
+                
+                // Add glow to closer stars
+                if (this.z < 1.5) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = this.color;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+                
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        class ShootingStar {
+            constructor() {
+                this.reset();
+                this.active = false;
+            }
+
+            reset() {
+                this.x = Math.random() * (width * 1.5);
+                this.y = Math.random() * (height / 2) - 100;
+                this.length = Math.random() * 80 + 40;
+                this.speed = Math.random() * 15 + 10;
+                this.angle = (Math.PI / 4) + (Math.random() * 0.2 - 0.1); // ~45 degrees downward
+                this.opacity = 0;
+                this.fadeRate = Math.random() * 0.05 + 0.02;
+                this.active = true;
+            }
+
+            update() {
+                if (!this.active) return;
+
+                this.x -= Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+
+                // Fade in and out
+                if (this.y < height / 3) {
+                    this.opacity += this.fadeRate;
+                } else {
+                    this.opacity -= this.fadeRate;
+                }
+
+                if (this.opacity <= 0 && this.y > height / 3) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                if (!this.active || this.opacity <= 0) return;
+
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + Math.cos(this.angle) * this.length, this.y - Math.sin(this.angle) * this.length);
+                
+                const gradient = ctx.createLinearGradient(this.x, this.y, this.x + Math.cos(this.angle) * this.length, this.y - Math.sin(this.angle) * this.length);
+                gradient.addColorStop(0, `rgba(255, 255, 255, ${Math.min(this.opacity, 1)})`);
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        // Initialize stars
+        for (let i = 0; i < numStars; i++) {
+            stars.push(new Star());
+        }
+
+        // Initialize shooting stars
+        for (let i = 0; i < 3; i++) {
+            shootingStars.push(new ShootingStar());
+        }
+
+        // Draw background nebulae
+        function drawBackground() {
+            // Dark gradient base
+            const bgGradient = ctx.createLinearGradient(0, 0, width, height);
+            bgGradient.addColorStop(0, '#020108');
+            bgGradient.addColorStop(1, '#0d0914');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // Nebula glowing clouds
+            ctx.globalCompositeOperation = 'screen';
+            
+            // Cloud 1
+            const gradient1 = ctx.createRadialGradient(width * 0.2, height * 0.8, 0, width * 0.2, height * 0.8, 400);
+            gradient1.addColorStop(0, 'rgba(40, 20, 80, 0.3)');
+            gradient1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = gradient1;
+            ctx.fillRect(0, 0, width, height);
+
+            // Cloud 2
+            const gradient2 = ctx.createRadialGradient(width * 0.8, height * 0.2, 0, width * 0.8, height * 0.2, 500);
+            gradient2.addColorStop(0, 'rgba(20, 50, 100, 0.25)');
+            gradient2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = gradient2;
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        // Main animation loop
+        function animate() {
+            // Smooth mouse movement for parallax
+            mouseX += (targetMouseX - mouseX) * 0.05;
+            mouseY += (targetMouseY - mouseY) * 0.05;
+
+            // Clear and draw background
+            ctx.clearRect(0, 0, width, height);
+            drawBackground();
+
+            // Update and draw stars
+            stars.forEach(star => {
+                star.update(mouseX, mouseY);
+                star.draw();
+            });
+
+            // Handle shooting stars
+            if (Math.random() < 0.015) { // Chance to spawn a shooting star
+                const inactiveStar = shootingStars.find(s => !s.active);
+                if (inactiveStar) {
+                    inactiveStar.reset();
+                }
+            }
+
+            shootingStars.forEach(star => {
+                star.update();
+                star.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation
+        window.onload = () => {
+            animate();
+        };
+    </script>
+</body>
+</html>
