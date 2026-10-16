@@ -1,309 +1,308 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Animation 1400x400</title>
+    <title>Ai Lab Interactive Banner</title>
     <style>
-        body {
+        body, html {
             margin: 0;
             padding: 0;
-            background-color: #050510;
+            width: 100%;
+            height: 100%;
+            background-color: #020202;
             display: flex;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            font-family: 'Inter', sans-serif;
+            justify-content: center;
             overflow: hidden;
+            font-family: 'archTH', sans-serif;
+        }
+
+        /* Responsive wrapper to maintain 1400x400 aspect ratio */
+        .scale-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
         }
 
         .banner-container {
             width: 1400px;
             height: 400px;
-            max-width: 100vw; /* Responsive for smaller screens */
+            background: #050914; /* Deep dark blue/black */
             position: relative;
-            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1);
-            background: linear-gradient(135deg, #090a0f 0%, #100e1e 50%, #050308 100%);
+            box-shadow: 0 0 50px rgba(0, 150, 255, 0.1), inset 0 0 100px #000;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            cursor: crosshair; /* Indicate interactivity */
         }
 
-        canvas {
-            display: block;
+        #interactive-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-        }
-        
-        .overlay-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            text-align: center;
-            pointer-events: none;
-            z-index: 10;
+            z-index: 1;
         }
 
-        h1 {
-            font-size: 5rem;
+        .content-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none; /* Let mouse events pass through to the canvas */
+        }
+
+        .title {
+            font-family: 'archTH', sans-serif;
+            font-size: 85px;
             margin: 0;
-            letter-spacing: 6px;
             text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-            background: linear-gradient(to right, #fff, #a2d6f9);
+            letter-spacing: 15px;
+            color: #ffffff;
+            /* Reduced glow for better readability */
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3), 0 0 20px rgba(0, 100, 255, 0.2);
+            background: linear-gradient(180deg, #ffffff 0%, #a2c2e8 40%, #4b6cb7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            /* Added a darker drop shadow to separate text from the bright canvas */
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.9));
         }
 
-        p {
-            font-size: 1.8rem;
-            color: #a2d6f9;
+        .subtitle {
+            font-family: 'archTH', sans-serif;
+            font-weight: 700;
+            font-size: 22px;
             margin-top: 15px;
-            letter-spacing: 3px;
-            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 12px;
+            color: #00ffff;
+            /* Reduced glow */
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.4), 0 0 10px rgba(0, 255, 255, 0.2);
+            opacity: 0.9;
         }
+
     </style>
 </head>
 <body>
 
-    <div class="banner-container">
-        <canvas id="spaceCanvas"></canvas>
-        <div class="overlay-text">
-            <h1>Ai Lab</h1>
-            <p>Any Time Any Where</p>
+    <div class="scale-wrapper" id="scaleWrapper">
+        <div class="banner-container">
+            <!-- The interactive canvas background -->
+            <canvas id="interactive-canvas"></canvas>
+            
+            <!-- Foreground text overlay -->
+            <div class="content-layer">
+                <h1 class="title">Ai Lab</h1>
+                <h2 class="subtitle">Any time Any Where</h2>
+            </div>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('spaceCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Set fixed resolution 1400x400 internally
-        const width = 1400;
-        const height = 400;
-        canvas.width = width;
-        canvas.height = height;
-
-        // Variables
-        const stars = [];
-        const shootingStars = [];
-        const numStars = 600;
+        const banner = document.querySelector('.banner-container');
         
-        // Mouse interaction for parallax
-        let mouseX = width / 2;
-        let mouseY = height / 2;
-        let targetMouseX = width / 2;
-        let targetMouseY = height / 2;
+        function resizeBanner() {
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // Calculate scale to fit within screen (95% of screen size max)
+            const scaleX = (windowWidth * 0.95) / 1400;
+            const scaleY = (windowHeight * 0.95) / 400;
+            const scale = Math.min(scaleX, scaleY, 1);
+            
+            banner.style.transform = `scale(${scale})`;
+        }
 
-        canvas.addEventListener('mousemove', (e) => {
+        window.addEventListener('resize', resizeBanner);
+        resizeBanner(); // Trigger on load
+
+        const canvas = document.getElementById('interactive-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Match actual banner size
+        canvas.width = 1400;
+        canvas.height = 400;
+
+        let particlesArray = [];
+        
+        // Mouse object to store coordinates and interaction radius
+        let mouse = {
+            x: null,
+            y: null,
+            radius: 200 // The area of effect for the intense highlighting
+        };
+
+        // Calculate exact mouse position relative to the scaled canvas
+        function updateMousePosition(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
-            // Scale mouse coordinates to canvas resolution
+            // Calculate actual scale of the element
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            targetMouseX = (e.clientX - rect.left) * scaleX;
-            targetMouseY = (e.clientY - rect.top) * scaleY;
+            
+            mouse.x = (clientX - rect.left) * scaleX;
+            mouse.y = (clientY - rect.top) * scaleY;
+        }
+
+        window.addEventListener('mousemove', (event) => {
+            updateMousePosition(event.clientX, event.clientY);
         });
 
-        canvas.addEventListener('mouseleave', () => {
-            targetMouseX = width / 2;
-            targetMouseY = height / 2;
+        window.addEventListener('touchmove', (event) => {
+            if(event.touches.length > 0) {
+                updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
+            }
         });
 
-        class Star {
-            constructor() {
-                this.reset();
-                // Randomize initial x position across the whole canvas
-                this.x = Math.random() * width; 
+        window.addEventListener('touchstart', (event) => {
+            if(event.touches.length > 0) {
+                updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
             }
+        });
 
-            reset() {
-                this.x = width + Math.random() * 100; // Start slightly off-screen right
-                this.y = Math.random() * height;
-                this.z = Math.random() * 3 + 0.1; // Depth (1 to 3) determines size and speed
-                this.radius = 1.5 / this.z; // Closer stars are larger
-                this.speed = (5 / this.z) * 0.15; // Closer stars move faster
-                this.alpha = Math.random() * 0.8 + 0.2;
-                this.twinkleSpeed = Math.random() * 0.02 + 0.01;
-                
-                // Color variations (white, slight blue, slight yellow)
-                const colors = ['#ffffff', '#cce0ff', '#ffeebb'];
-                this.color = colors[Math.floor(Math.random() * colors.length)];
-            }
+        // Reset mouse position when leaving the area or ending touch
+        window.addEventListener('mouseout', () => {
+            mouse.x = undefined;
+            mouse.y = undefined;
+        });
 
-            update(parallaxX, parallaxY) {
-                // Move left
-                this.x -= this.speed;
-                
-                // Parallax offset
-                const pX = (parallaxX - width/2) * (0.01 / this.z);
-                const pY = (parallaxY - height/2) * (0.01 / this.z);
+        window.addEventListener('touchend', () => {
+            mouse.x = undefined;
+            mouse.y = undefined;
+        });
 
-                this.x -= pX;
-                this.y -= pY;
+        window.addEventListener('touchcancel', () => {
+            mouse.x = undefined;
+            mouse.y = undefined;
+        });
 
-                // Twinkle effect
-                this.alpha += this.twinkleSpeed;
-                if (this.alpha >= 1 || this.alpha <= 0.2) {
-                    this.twinkleSpeed *= -1;
-                }
-
-                // Reset if it goes off screen
-                if (this.x < -10 || this.y < -10 || this.y > height + 10) {
-                    this.reset();
-                    // Force start on the right side when resetting naturally
-                    this.x = width + Math.random() * 50;
-                }
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 2 + 1; // Base node size
+                // Slower, smoother movement
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 30) + 1;
+                // Velocity for drifting
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
             }
 
             draw() {
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = Math.max(0, Math.min(1, this.alpha));
-                
-                // Add glow to closer stars
-                if (this.z < 1.5) {
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = this.color;
-                } else {
-                    ctx.shadowBlur = 0;
-                }
-                
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.closePath();
                 ctx.fill();
-                ctx.globalAlpha = 1;
-                ctx.shadowBlur = 0;
-            }
-        }
-
-        class ShootingStar {
-            constructor() {
-                this.reset();
-                this.active = false;
-            }
-
-            reset() {
-                this.x = Math.random() * (width * 1.5);
-                this.y = Math.random() * (height / 2) - 100;
-                this.length = Math.random() * 80 + 40;
-                this.speed = Math.random() * 15 + 10;
-                this.angle = (Math.PI / 4) + (Math.random() * 0.2 - 0.1); // ~45 degrees downward
-                this.opacity = 0;
-                this.fadeRate = Math.random() * 0.05 + 0.02;
-                this.active = true;
             }
 
             update() {
-                if (!this.active) return;
+                // Keep particles moving slowly
+                this.x += this.vx;
+                this.y += this.vy;
 
-                this.x -= Math.cos(this.angle) * this.speed;
-                this.y += Math.sin(this.angle) * this.speed;
+                // Bounce off edges
+                if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
+                if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
 
-                // Fade in and out
-                if (this.y < height / 3) {
-                    this.opacity += this.fadeRate;
+                // Mouse interaction for nodes (Push effect and glow)
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.hypot(dx, dy);
+
+                if (distance < mouse.radius) {
+                    // Node gets brighter and slightly larger when mouse is near
+                    ctx.fillStyle = `rgba(0, 255, 255, 1)`;
+                    this.size = 3; 
                 } else {
-                    this.opacity -= this.fadeRate;
+                    // Default faint state
+                    ctx.fillStyle = `rgba(100, 150, 255, 0.3)`;
+                    this.size = 1.5;
                 }
 
-                if (this.opacity <= 0 && this.y > height / 3) {
-                    this.active = false;
-                }
-            }
-
-            draw() {
-                if (!this.active || this.opacity <= 0) return;
-
-                ctx.beginPath();
-                ctx.moveTo(this.x, this.y);
-                ctx.lineTo(this.x + Math.cos(this.angle) * this.length, this.y - Math.sin(this.angle) * this.length);
-                
-                const gradient = ctx.createLinearGradient(this.x, this.y, this.x + Math.cos(this.angle) * this.length, this.y - Math.sin(this.angle) * this.length);
-                gradient.addColorStop(0, `rgba(255, 255, 255, ${Math.min(this.opacity, 1)})`);
-                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                
-                ctx.strokeStyle = gradient;
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                this.draw();
             }
         }
 
-        // Initialize stars
-        for (let i = 0; i < numStars; i++) {
-            stars.push(new Star());
+        function init() {
+            particlesArray = [];
+            // Amount of nodes (density of the pattern)
+            let numberOfParticles = 250;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                particlesArray.push(new Particle(x, y));
+            }
         }
 
-        // Initialize shooting stars
-        for (let i = 0; i < 3; i++) {
-            shootingStars.push(new ShootingStar());
-        }
-
-        // Draw background nebulae
-        function drawBackground() {
-            // Dark gradient base
-            const bgGradient = ctx.createLinearGradient(0, 0, width, height);
-            bgGradient.addColorStop(0, '#020108');
-            bgGradient.addColorStop(1, '#0d0914');
-            ctx.fillStyle = bgGradient;
-            ctx.fillRect(0, 0, width, height);
-
-            // Nebula glowing clouds
-            ctx.globalCompositeOperation = 'screen';
+        function connect() {
+            let maxDistance = 80; // Distance to form a connection line
             
-            // Cloud 1
-            const gradient1 = ctx.createRadialGradient(width * 0.2, height * 0.8, 0, width * 0.2, height * 0.8, 400);
-            gradient1.addColorStop(0, 'rgba(40, 20, 80, 0.3)');
-            gradient1.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = gradient1;
-            ctx.fillRect(0, 0, width, height);
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let dx = particlesArray[a].x - particlesArray[b].x;
+                    let dy = particlesArray[a].y - particlesArray[b].y;
+                    let distance = Math.hypot(dx, dy);
 
-            // Cloud 2
-            const gradient2 = ctx.createRadialGradient(width * 0.8, height * 0.2, 0, width * 0.8, height * 0.2, 500);
-            gradient2.addColorStop(0, 'rgba(20, 50, 100, 0.25)');
-            gradient2.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = gradient2;
-            ctx.fillRect(0, 0, width, height);
+                    if (distance < maxDistance) {
+                        // Check if this specific line is near the mouse
+                        let midX = (particlesArray[a].x + particlesArray[b].x) / 2;
+                        let midY = (particlesArray[a].y + particlesArray[b].y) / 2;
+                        
+                        let mouseDx = mouse.x - midX;
+                        let mouseDy = mouse.y - midY;
+                        let mouseDistance = Math.hypot(mouseDx, mouseDy);
 
-            ctx.globalCompositeOperation = 'source-over';
-        }
+                        // If the line is within the mouse radius, make it intense (เข้มขึ้น)
+                        if (mouseDistance < mouse.radius) {
+                            // Calculate intensity based on how close the mouse is
+                            let intensity = 1 - (mouseDistance / mouse.radius);
+                            
+                            ctx.strokeStyle = `rgba(0, 255, 255, ${intensity})`; // Bright cyan
+                            ctx.lineWidth = intensity * 2.5; // Thicker lines near mouse
+                        } else {
+                            // Default faint background pattern
+                            let opacityValue = 1 - (distance / maxDistance);
+                            ctx.strokeStyle = `rgba(75, 120, 200, ${opacityValue * 0.15})`; // Faint blue/grey
+                            ctx.lineWidth = 0.5; // Thin lines normally
+                        }
 
-        // Main animation loop
-        function animate() {
-            // Smooth mouse movement for parallax
-            mouseX += (targetMouseX - mouseX) * 0.05;
-            mouseY += (targetMouseY - mouseY) * 0.05;
-
-            // Clear and draw background
-            ctx.clearRect(0, 0, width, height);
-            drawBackground();
-
-            // Update and draw stars
-            stars.forEach(star => {
-                star.update(mouseX, mouseY);
-                star.draw();
-            });
-
-            // Handle shooting stars
-            if (Math.random() < 0.015) { // Chance to spawn a shooting star
-                const inactiveStar = shootingStars.find(s => !s.active);
-                if (inactiveStar) {
-                    inactiveStar.reset();
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
                 }
             }
+        }
 
-            shootingStars.forEach(star => {
-                star.update();
-                star.draw();
-            });
-
+        function animate() {
+            // Clear canvas with a very slight trail effect
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connect();
             requestAnimationFrame(animate);
         }
 
-        // Start animation
+        // Initialize and start
         window.onload = () => {
+            init();
             animate();
         };
+
     </script>
 </body>
 </html>
