@@ -18,7 +18,6 @@
             font-family: 'archTH', sans-serif;
         }
 
-        /* Responsive wrapper to maintain 1400x400 aspect ratio */
         .scale-wrapper {
             display: flex;
             align-items: center;
@@ -30,11 +29,17 @@
         .banner-container {
             width: 1400px;
             height: 400px;
-            background: #050914; /* Deep dark blue/black */
+            background-color: #050914; /* Deep dark blue/black base */
+            /* Adding the Sci-Fi Grid Background */
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.07) 1px, transparent 1px);
+            background-size: 40px 40px; /* Grid size */
+            background-position: center center;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(0, 150, 255, 0.1), inset 0 0 100px #000;
-            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 50px rgba(0, 150, 255, 0.1), inset 0 0 80px #000;
+            border: 1px solid rgba(0, 255, 255, 0.3);
             border-radius: 12px;
             cursor: crosshair; /* Indicate interactivity */
         }
@@ -59,38 +64,36 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            pointer-events: none; /* Let mouse events pass through to the canvas */
+            pointer-events: none; /* Let mouse/touch events pass through to the canvas */
         }
 
         .title {
             font-family: 'archTH', sans-serif;
-            font-size: 85px;
+            font-size: 65px; /* Reduced size as requested */
             margin: 0;
             text-transform: uppercase;
-            letter-spacing: 15px;
+            letter-spacing: 12px;
             color: #ffffff;
             /* Reduced glow for better readability */
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3), 0 0 20px rgba(0, 100, 255, 0.2);
-            background: linear-gradient(180deg, #ffffff 0%, #a2c2e8 40%, #4b6cb7 100%);
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.4), 0 0 15px rgba(0, 100, 255, 0.3);
+            background: linear-gradient(180deg, #ffffff 0%, #c4dcf5 50%, #4b6cb7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            /* Added a darker drop shadow to separate text from the bright canvas */
-            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.9));
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.8));
         }
 
         .subtitle {
             font-family: 'archTH', sans-serif;
             font-weight: 700;
-            font-size: 22px;
-            margin-top: 15px;
+            font-size: 18px; /* Reduced size */
+            margin-top: 10px;
             text-transform: uppercase;
-            letter-spacing: 12px;
+            letter-spacing: 8px;
             color: #00ffff;
             /* Reduced glow */
-            text-shadow: 0 0 5px rgba(0, 255, 255, 0.4), 0 0 10px rgba(0, 255, 255, 0.2);
-            opacity: 0.9;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+            opacity: 0.85;
         }
-
     </style>
 </head>
 <body>
@@ -110,42 +113,41 @@
 
     <script>
         const banner = document.querySelector('.banner-container');
+        const canvas = document.getElementById('interactive-canvas');
+        const ctx = canvas.getContext('2d');
         
+        // Exact 1400x400 size for the internal canvas logic
+        const CANVAS_WIDTH = 1400;
+        const CANVAS_HEIGHT = 400;
+        
+        canvas.width = CANVAS_WIDTH;
+        canvas.height = CANVAS_HEIGHT;
+
         function resizeBanner() {
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             
-            // Calculate scale to fit within screen (95% of screen size max)
-            const scaleX = (windowWidth * 0.95) / 1400;
-            const scaleY = (windowHeight * 0.95) / 400;
-            const scale = Math.min(scaleX, scaleY, 1);
+            // Calculate scale to fit within screen (95% of screen size max to leave a tiny margin)
+            const scaleX = (windowWidth * 0.95) / CANVAS_WIDTH;
+            const scaleY = (windowHeight * 0.95) / CANVAS_HEIGHT;
+            const scale = Math.min(scaleX, scaleY, 1); // Max scale is 1 (100%)
             
             banner.style.transform = `scale(${scale})`;
         }
 
         window.addEventListener('resize', resizeBanner);
-        resizeBanner(); // Trigger on load
-
-        const canvas = document.getElementById('interactive-canvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Match actual banner size
-        canvas.width = 1400;
-        canvas.height = 400;
+        resizeBanner(); // Trigger calculation on load
 
         let particlesArray = [];
         
-        // Mouse object to store coordinates and interaction radius
         let mouse = {
             x: null,
             y: null,
-            radius: 200 // The area of effect for the intense highlighting
+            radius: 180 // Interaction radius
         };
 
-        // Calculate exact mouse position relative to the scaled canvas
         function updateMousePosition(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
-            // Calculate actual scale of the element
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             
@@ -153,33 +155,30 @@
             mouse.y = (clientY - rect.top) * scaleY;
         }
 
+        // Mouse Events
         window.addEventListener('mousemove', (event) => {
             updateMousePosition(event.clientX, event.clientY);
         });
-
-        window.addEventListener('touchmove', (event) => {
-            if(event.touches.length > 0) {
-                updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
-            }
-        });
-
-        window.addEventListener('touchstart', (event) => {
-            if(event.touches.length > 0) {
-                updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
-            }
-        });
-
-        // Reset mouse position when leaving the area or ending touch
         window.addEventListener('mouseout', () => {
             mouse.x = undefined;
             mouse.y = undefined;
         });
 
+        // Touch Events for Mobile / iPad
+        window.addEventListener('touchmove', (event) => {
+            if(event.touches.length > 0) {
+                updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
+            }
+        });
+        window.addEventListener('touchstart', (event) => {
+            if(event.touches.length > 0) {
+                updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
+            }
+        });
         window.addEventListener('touchend', () => {
             mouse.x = undefined;
             mouse.y = undefined;
         });
-
         window.addEventListener('touchcancel', () => {
             mouse.x = undefined;
             mouse.y = undefined;
@@ -189,14 +188,12 @@
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = Math.random() * 2 + 1; // Base node size
-                // Slower, smoother movement
+                this.size = Math.random() * 1.5 + 0.5; // Base node size
                 this.baseX = this.x;
                 this.baseY = this.y;
-                this.density = (Math.random() * 30) + 1;
-                // Velocity for drifting
-                this.vx = (Math.random() - 0.5) * 0.5;
-                this.vy = (Math.random() - 0.5) * 0.5;
+                // Slower, smooth drifting velocity
+                this.vx = (Math.random() - 0.5) * 0.6;
+                this.vy = (Math.random() - 0.5) * 0.6;
             }
 
             draw() {
@@ -207,7 +204,7 @@
             }
 
             update() {
-                // Keep particles moving slowly
+                // Move particle
                 this.x += this.vx;
                 this.y += this.vy;
 
@@ -215,19 +212,22 @@
                 if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
                 if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
 
-                // Mouse interaction for nodes (Push effect and glow)
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let distance = Math.hypot(dx, dy);
+                // Interaction
+                if (mouse.x != null && mouse.y != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.hypot(dx, dy);
 
-                if (distance < mouse.radius) {
-                    // Node gets brighter and slightly larger when mouse is near
-                    ctx.fillStyle = `rgba(0, 255, 255, 1)`;
-                    this.size = 3; 
+                    if (distance < mouse.radius) {
+                        ctx.fillStyle = `rgba(0, 255, 255, 1)`; // Bright cyan when near
+                        this.size = 2.5; 
+                    } else {
+                        ctx.fillStyle = `rgba(100, 150, 255, 0.4)`; // Faint default
+                        this.size = 1.2;
+                    }
                 } else {
-                    // Default faint state
-                    ctx.fillStyle = `rgba(100, 150, 255, 0.3)`;
-                    this.size = 1.5;
+                    ctx.fillStyle = `rgba(100, 150, 255, 0.4)`;
+                    this.size = 1.2;
                 }
 
                 this.draw();
@@ -236,8 +236,7 @@
 
         function init() {
             particlesArray = [];
-            // Amount of nodes (density of the pattern)
-            let numberOfParticles = 250;
+            let numberOfParticles = 220; // Appropriate density for 1400x400
             for (let i = 0; i < numberOfParticles; i++) {
                 let x = Math.random() * canvas.width;
                 let y = Math.random() * canvas.height;
@@ -246,7 +245,7 @@
         }
 
         function connect() {
-            let maxDistance = 80; // Distance to form a connection line
+            let maxDistance = 75; // Distance to draw a line
             
             for (let a = 0; a < particlesArray.length; a++) {
                 for (let b = a; b < particlesArray.length; b++) {
@@ -255,26 +254,27 @@
                     let distance = Math.hypot(dx, dy);
 
                     if (distance < maxDistance) {
-                        // Check if this specific line is near the mouse
-                        let midX = (particlesArray[a].x + particlesArray[b].x) / 2;
-                        let midY = (particlesArray[a].y + particlesArray[b].y) / 2;
-                        
-                        let mouseDx = mouse.x - midX;
-                        let mouseDy = mouse.y - midY;
-                        let mouseDistance = Math.hypot(mouseDx, mouseDy);
+                        let isNearMouse = false;
+                        let intensity = 0;
 
-                        // If the line is within the mouse radius, make it intense (เข้มขึ้น)
-                        if (mouseDistance < mouse.radius) {
-                            // Calculate intensity based on how close the mouse is
-                            let intensity = 1 - (mouseDistance / mouse.radius);
-                            
-                            ctx.strokeStyle = `rgba(0, 255, 255, ${intensity})`; // Bright cyan
-                            ctx.lineWidth = intensity * 2.5; // Thicker lines near mouse
+                        if (mouse.x != null && mouse.y != null) {
+                            let midX = (particlesArray[a].x + particlesArray[b].x) / 2;
+                            let midY = (particlesArray[a].y + particlesArray[b].y) / 2;
+                            let mouseDistance = Math.hypot(mouse.x - midX, mouse.y - midY);
+
+                            if (mouseDistance < mouse.radius) {
+                                isNearMouse = true;
+                                intensity = 1 - (mouseDistance / mouse.radius);
+                            }
+                        }
+
+                        if (isNearMouse) {
+                            ctx.strokeStyle = `rgba(0, 255, 255, ${intensity * 0.8})`; 
+                            ctx.lineWidth = intensity * 2.0; 
                         } else {
-                            // Default faint background pattern
                             let opacityValue = 1 - (distance / maxDistance);
-                            ctx.strokeStyle = `rgba(75, 120, 200, ${opacityValue * 0.15})`; // Faint blue/grey
-                            ctx.lineWidth = 0.5; // Thin lines normally
+                            ctx.strokeStyle = `rgba(75, 120, 200, ${opacityValue * 0.15})`; 
+                            ctx.lineWidth = 0.5; 
                         }
 
                         ctx.beginPath();
@@ -287,7 +287,6 @@
         }
 
         function animate() {
-            // Clear canvas with a very slight trail effect
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             for (let i = 0; i < particlesArray.length; i++) {
@@ -297,12 +296,15 @@
             requestAnimationFrame(animate);
         }
 
-        // Initialize and start
+        // Start everything securely
         window.onload = () => {
-            init();
-            animate();
+            try {
+                init();
+                animate();
+            } catch (error) {
+                console.error("Animation Error:", error);
+            }
         };
-
     </script>
 </body>
 </html>
