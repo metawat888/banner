@@ -1,332 +1,397 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ai Lab Interactive Banner</title>
+    <title>Black Hole Animation 1400x400</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body, html {
+        body {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #020202;
+            background-color: #020105; /* Deep space black */
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Rajdhani', sans-serif;
             overflow: hidden;
-            font-family: 'archTH', sans-serif;
-        }
-
-        .scale-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100vw;
-            height: 100vh;
         }
 
         .banner-container {
             width: 1400px;
             height: 400px;
-            background-color: #050914; /* Deep dark blue/black base */
-            /* Adding the Sci-Fi Grid Background */
-            background-image: 
-                linear-gradient(rgba(0, 255, 255, 0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.07) 1px, transparent 1px);
-            background-size: 40px 40px; /* Grid size */
-            background-position: center center;
+            max-width: 100vw;
             position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 50px rgba(0, 150, 255, 0.1), inset 0 0 80px #000;
-            /* Removed border as requested */
-            border: none;
             border-radius: 12px;
-            cursor: crosshair; /* Indicate interactivity */
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            background-color: #030206;
         }
 
-        #interactive-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
+        canvas {
+            display: block;
             width: 100%;
             height: 100%;
-            z-index: 1;
+            object-fit: cover;
         }
-
-        .content-layer {
+        
+        .overlay-text {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            pointer-events: none;
             z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none; /* Let mouse/touch events pass through to the canvas */
+            /* Subtle floating animation */
+            animation: float 6s ease-in-out infinite;
+            /* Added dark backdrop to make text pop against the bright black hole */
+            background: radial-gradient(circle, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 70%);
+            padding: 40px 100px;
+            border-radius: 50%;
+            /* ป้องกันการตัดขึ้นบรรทัดใหม่ */
+            white-space: nowrap;
         }
 
-        .title {
-            font-family: 'archTH', sans-serif;
-            font-size: 65px; /* Reduced size */
+        @keyframes float {
+            0% { transform: translate(-50%, -50%); }
+            50% { transform: translate(-50%, -54%); }
+            100% { transform: translate(-50%, -50%); }
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 6.5rem; /* Larger font */
             margin: 0;
-            text-transform: uppercase;
             letter-spacing: 12px;
+            text-transform: uppercase;
             color: #ffffff;
-            /* Reduced glow for better readability */
-            text-shadow: 0 0 8px rgba(0, 255, 255, 0.4), 0 0 15px rgba(0, 100, 255, 0.3);
-            background: linear-gradient(180deg, #ffffff 0%, #c4dcf5 50%, #4b6cb7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.8));
+            white-space: nowrap;
+            /* Heavy contrast text shadow to pop out */
+            text-shadow: 
+                0 4px 10px rgba(0, 0, 0, 1),
+                0 0 20px rgba(0, 0, 0, 1),
+                0 0 40px rgba(0, 0, 0, 0.9),
+                0 0 30px rgba(255, 180, 100, 0.8);
         }
 
-        .subtitle {
-            font-family: 'archTH', sans-serif;
-            font-weight: 700;
-            font-size: 18px; /* Reduced size */
+        p {
+            font-size: 2rem;
+            color: #fff0d4;
             margin-top: 10px;
-            text-transform: uppercase;
             letter-spacing: 8px;
-            color: #00ffff;
-            /* Reduced glow */
-            text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
-            opacity: 0.85;
+            font-weight: 700;
+            white-space: nowrap;
+            /* Heavy contrast text shadow for subtitle */
+            text-shadow: 
+                0 2px 5px rgba(0, 0, 0, 1), 
+                0 0 15px rgba(0, 0, 0, 1),
+                0 0 20px rgba(255, 150, 50, 0.8);
         }
     </style>
 </head>
 <body>
 
-    <div class="scale-wrapper" id="scaleWrapper">
-        <div class="banner-container">
-            <!-- The interactive canvas background -->
-            <canvas id="interactive-canvas"></canvas>
-            
-            <!-- Foreground text overlay -->
-            <div class="content-layer">
-                <h1 class="title">Ai Lab</h1>
-                <h2 class="subtitle">Any time Any Where</h2>
-            </div>
+    <div class="banner-container">
+        <canvas id="blackHoleCanvas"></canvas>
+        <div class="overlay-text">
+            <h1>Ai Lab</h1>
+            <p>ANY TIME ANY WHERE</p>
         </div>
     </div>
 
     <script>
-        const banner = document.querySelector('.banner-container');
-        const canvas = document.getElementById('interactive-canvas');
+        const canvas = document.getElementById('blackHoleCanvas');
         const ctx = canvas.getContext('2d');
+
+        // Fixed resolution for crisp rendering
+        const width = 1400;
+        const height = 400;
+        canvas.width = width;
+        canvas.height = height;
+
+        // Base coordinates for the black hole
+        let cx = width / 2;
+        let cy = height / 2;
         
-        // Exact 1400x400 size for the internal canvas logic
-        const CANVAS_WIDTH = 1400;
-        const CANVAS_HEIGHT = 400;
-        
-        canvas.width = CANVAS_WIDTH;
-        canvas.height = CANVAS_HEIGHT;
+        // Mouse parallax target
+        let targetCx = width / 2;
+        let targetCy = height / 2;
 
-        function resizeBanner() {
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            
-            // Calculate scale to fit within screen (95% of screen size max to leave a tiny margin)
-            const scaleX = (windowWidth * 0.95) / CANVAS_WIDTH;
-            const scaleY = (windowHeight * 0.95) / CANVAS_HEIGHT;
-            const scale = Math.min(scaleX, scaleY, 1); // Max scale is 1 (100%)
-            
-            banner.style.transform = `scale(${scale})`;
-        }
+        // Radius of the Event Horizon (The dark sphere) ปรับให้เล็กลงจาก 75
+        const eventHorizonRadius = 55;
 
-        window.addEventListener('resize', resizeBanner);
-        resizeBanner(); // Trigger calculation on load
+        // Arrays to hold data
+        const rings = [];
+        const backgroundStars = [];
+        const meteors = [];
+        // Track time for animation
+        let time = 0;
 
-        let particlesArray = [];
-        
-        // Mouse and autonomous wandering light state
-        let mouse = {
-            x: null,
-            y: null,
-            radius: 180, // Interaction radius
-            isUserActive: false
-        };
-
-        // Autonomous wandering light parameters
-        let wanderX = CANVAS_WIDTH / 2;
-        let wanderY = CANVAS_HEIGHT / 2;
-        let wanderAngleX = Math.random() * Math.PI * 2;
-        let wanderAngleY = Math.random() * Math.PI * 2;
-        let wanderSpeedX = 1.5;
-        let wanderSpeedY = 1.2;
-
-        function updateMousePosition(clientX, clientY) {
+        canvas.addEventListener('mousemove', (e) => {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
             
-            mouse.x = (clientX - rect.left) * scaleX;
-            mouse.y = (clientY - rect.top) * scaleY;
-            mouse.isUserActive = true;
+            // Subtle shift based on mouse position (Parallax)
+            targetCx = (width / 2) + (mouseX - width / 2) * 0.03;
+            targetCy = (height / 2) + (mouseY - height / 2) * 0.03;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            targetCx = width / 2;
+            targetCy = height / 2;
+        });
+
+        // Colors from outer edge to inner edge
+        const palette = [
+            'rgba(80, 20, 10, 0.4)',   // Outer dark red
+            'rgba(180, 60, 20, 0.5)',  // Red-orange
+            'rgba(255, 120, 40, 0.7)', // Bright orange
+            'rgba(255, 200, 120, 0.8)',// Peach / yellow
+            'rgba(255, 240, 220, 0.9)',// Near white
+            'rgba(150, 220, 255, 0.8)' // Innermost cyan edge
+        ];
+
+        function getRingColor(ratio) {
+            const index = Math.min(Math.floor(ratio * palette.length), palette.length - 1);
+            return palette[index];
         }
 
-        // Mouse Events
-        window.addEventListener('mousemove', (event) => {
-            updateMousePosition(event.clientX, event.clientY);
-        });
-        window.addEventListener('mouseout', () => {
-            mouse.isUserActive = false;
-        });
+        // Generate rings for the accretion disk - ปรับขนาดไม่ให้หลุดกรอบ 400px
+        const numRings = 40;
+        const maxRx = 320; // ปรับรัศมีแนวนอนไม่ให้กว้างเกินไป
+        const minRx = eventHorizonRadius + 5;
+        const baseRy = 35; // Flatness of the disk (ปรับให้แบนลงเพื่อไม่ให้ติดขอบ)
 
-        // Touch Events for Mobile / iPad
-        window.addEventListener('touchmove', (event) => {
-            if(event.touches.length > 0) {
-                updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
-            }
-        });
-        window.addEventListener('touchstart', (event) => {
-            if(event.touches.length > 0) {
-                updateMousePosition(event.touches[0].clientX, event.touches[0].clientY);
-            }
-        });
-        window.addEventListener('touchend', () => {
-            mouse.isUserActive = false;
-        });
-        window.addEventListener('touchcancel', () => {
-            mouse.isUserActive = false;
-        });
+        for (let i = 0; i < numRings; i++) {
+            const ratio = i / numRings; // 0 is outer, 1 is inner
+            const rx = maxRx - (maxRx - minRx) * Math.pow(ratio, 0.8);
+            const ry = baseRy - (baseRy - (eventHorizonRadius * 0.2)) * ratio;
+            
+            rings.push({
+                rx: rx,
+                ry: ry,
+                color: getRingColor(ratio),
+                lineWidth: Math.random() * 4 + 1,
+                blur: Math.random() * 10 + 2,
+                dash: [Math.random() * 200 + 50, Math.random() * 100 + 20],
+                speed: (Math.random() * 1.5 + 0.5) * (ratio * 3 + 1), // Inner rings spin faster
+                offset: Math.random() * 1000,
+                // Control points for the lensed halos (คำนวณใหม่ให้ความสูงไม่หลุดขอบ 400px)
+                haloTopY: (maxRx - rx) * 0.4 + 80, 
+                haloBottomY: (maxRx - rx) * 0.2 + 40
+            });
+        }
 
-        class Particle {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.size = Math.random() * 1.5 + 0.5; // Base node size
-                // Smooth drifting velocity
-                this.vx = (Math.random() - 0.5) * 0.8;
-                this.vy = (Math.random() - 0.5) * 0.8;
-            }
+        for (let i = 0; i < 200; i++) {
+            backgroundStars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 1.5,
+                alpha: Math.random(),
+                speed: Math.random() * 0.02 + 0.01
+            });
+        }
 
-            draw() {
+        function drawBackground() {
+            ctx.fillStyle = '#030108'; // Deep space color
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.fillStyle = '#ffffff';
+            backgroundStars.forEach(star => {
+                // Twinkle
+                star.alpha += star.speed;
+                if (star.alpha > 1 || star.alpha < 0.2) star.speed *= -1;
+                
+                ctx.globalAlpha = Math.max(0, Math.min(1, star.alpha));
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.closePath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
                 ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function drawMeteors() {
+            // Randomly spawn a new meteor (approx 3% chance per frame)
+            if (Math.random() < 0.03) {
+                meteors.push({
+                    x: Math.random() * width * 1.5, // Start further right to angle left
+                    y: Math.random() * -100, // Start above the canvas
+                    length: Math.random() * 100 + 40, // Length of the tail
+                    thickness: Math.random() * 1.5 + 0.5,
+                    vx: -(Math.random() * 10 + 6), // Speed X (moving left)
+                    vy: (Math.random() * 5 + 3),   // Speed Y (moving down)
+                    opacity: 1,
+                    fadeRate: Math.random() * 0.03 + 0.005, // How fast it fades out
+                    // Mix of cyan and orange/white tints
+                    color: Math.random() > 0.5 ? '150, 220, 255' : '255, 220, 180'
+                });
             }
 
-            update() {
-                // Move particle
-                this.x += this.vx;
-                this.y += this.vy;
+            ctx.globalCompositeOperation = 'screen';
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                let m = meteors[i];
+                
+                // Move the meteor
+                m.x += m.vx;
+                m.y += m.vy;
+                m.opacity -= m.fadeRate; // Fade out gradually
 
-                // Wrap-around edges for seamless continuous flowing
-                if (this.x < 0) this.x = canvas.width;
-                if (this.x > canvas.width) this.x = 0;
-                if (this.y < 0) this.y = canvas.height;
-                if (this.y > canvas.height) this.y = 0;
+                if (m.opacity > 0) {
+                    // Calculate tail coordinates
+                    let len = Math.sqrt(m.vx * m.vx + m.vy * m.vy);
+                    let dx = (m.vx / len) * m.length;
+                    let dy = (m.vy / len) * m.length;
+                    
+                    let tailX = m.x - dx;
+                    let tailY = m.y - dy;
 
-                // Determine active light position (User or Autonomous Wandering Light)
-                let activeX = mouse.isUserActive ? mouse.x : wanderX;
-                let activeY = mouse.isUserActive ? mouse.y : wanderY;
+                    // Gradient for the tail (bright at head, transparent at tail)
+                    let grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
+                    grad.addColorStop(0, `rgba(${m.color}, ${m.opacity})`);
+                    grad.addColorStop(1, `rgba(${m.color}, 0)`);
 
-                // Interaction with active light source
-                let dx = activeX - this.x;
-                let dy = activeY - this.y;
-                let distance = Math.hypot(dx, dy);
+                    // Draw tail
+                    ctx.beginPath();
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = m.thickness;
+                    ctx.lineCap = 'round';
+                    ctx.moveTo(m.x, m.y);
+                    ctx.lineTo(tailX, tailY);
+                    ctx.stroke();
 
-                if (distance < mouse.radius) {
-                    ctx.fillStyle = `rgba(0, 255, 255, 1)`; // Bright cyan when near light
-                    this.size = 2.5; 
-                } else {
-                    ctx.fillStyle = `rgba(100, 150, 255, 0.4)`; // Faint default
-                    this.size = 1.2;
+                    // Draw head glow
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(255, 255, 255, ${m.opacity})`;
+                    ctx.arc(m.x, m.y, m.thickness, 0, Math.PI * 2);
+                    ctx.fill();
                 }
 
-                this.draw();
+                // Remove meteor if it faded completely or went off-screen
+                if (m.opacity <= 0 || m.y > height || m.x < -100) {
+                    meteors.splice(i, 1);
+                }
             }
         }
 
-        function init() {
-            particlesArray = [];
-            let numberOfParticles = 220; // Appropriate density for 1400x400
-            for (let i = 0; i < numberOfParticles; i++) {
-                let x = Math.random() * canvas.width;
-                let y = Math.random() * canvas.height;
-                particlesArray.push(new Particle(x, y));
-            }
-        }
+        // Draw the swirling lines
+        function drawRings(part) {
+            rings.forEach(ring => {
+                ctx.beginPath();
+                ctx.strokeStyle = ring.color;
+                ctx.lineWidth = ring.lineWidth;
+                ctx.filter = `blur(${ring.blur}px)`;
+                ctx.setLineDash(ring.dash);
+                ctx.lineDashOffset = -time * ring.speed - ring.offset;
 
-        function connect() {
-            let maxDistance = 75; // Distance to draw a line
-            
-            // Determine active light position
-            let activeX = mouse.isUserActive ? mouse.x : wanderX;
-            let activeY = mouse.isUserActive ? mouse.y : wanderY;
-
-            for (let a = 0; a < particlesArray.length; a++) {
-                for (let b = a; b < particlesArray.length; b++) {
-                    let dx = particlesArray[a].x - particlesArray[b].x;
-                    let dy = particlesArray[a].y - particlesArray[b].y;
-                    let distance = Math.hypot(dx, dy);
-
-                    if (distance < maxDistance) {
-                        let isNearLight = false;
-                        let intensity = 0;
-
-                        let midX = (particlesArray[a].x + particlesArray[b].x) / 2;
-                        let midY = (particlesArray[a].y + particlesArray[b].y) / 2;
-                        let lightDistance = Math.hypot(activeX - midX, activeY - midY);
-
-                        if (lightDistance < mouse.radius) {
-                            isNearLight = true;
-                            intensity = 1 - (lightDistance / mouse.radius);
-                        }
-
-                        if (isNearLight) {
-                            ctx.strokeStyle = `rgba(0, 255, 255, ${intensity * 0.8})`; 
-                            ctx.lineWidth = intensity * 2.0; 
-                        } else {
-                            let opacityValue = 1 - (distance / maxDistance);
-                            ctx.strokeStyle = `rgba(75, 120, 200, ${opacityValue * 0.15})`; 
-                            ctx.lineWidth = 0.5; 
-                        }
-
-                        ctx.beginPath();
-                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
-                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                if (part === 'back') {
+                    // Back half of the disk (behind event horizon)
+                    ctx.ellipse(cx, cy, ring.rx, ring.ry, 0, Math.PI, Math.PI * 2);
+                    ctx.stroke();
+                } 
+                else if (part === 'front') {
+                    // Front half of the disk (overlaps event horizon)
+                    ctx.ellipse(cx, cy, ring.rx, ring.ry, 0, 0, Math.PI);
+                    ctx.stroke();
+                }
+                else if (part === 'haloTop') {
+                    // Gravitational Lensing (warped over the top)
+                    // Only draw for rings that are slightly further out
+                    if (ring.rx > eventHorizonRadius * 1.5) {
+                        ctx.moveTo(cx - ring.rx, cy);
+                        // Bezier curve arching upwards
+                        ctx.bezierCurveTo(
+                            cx - ring.rx * 0.4, cy - ring.haloTopY, 
+                            cx + ring.rx * 0.4, cy - ring.haloTopY, 
+                            cx + ring.rx, cy
+                        );
                         ctx.stroke();
                     }
                 }
-            }
+                else if (part === 'haloBottom') {
+                    // Gravitational Lensing (warped under the bottom, much thinner/fainter)
+                    if (ring.rx > eventHorizonRadius * 1.8) {
+                        ctx.moveTo(cx - ring.rx, cy);
+                        ctx.bezierCurveTo(
+                            cx - ring.rx * 0.5, cy + ring.haloBottomY, 
+                            cx + ring.rx * 0.5, cy + ring.haloBottomY, 
+                            cx + ring.rx, cy
+                        );
+                        ctx.globalAlpha = 0.5; // Make bottom halo fainter
+                        ctx.stroke();
+                        ctx.globalAlpha = 1.0;
+                    }
+                }
+            });
         }
 
-        function updateWanderingLight() {
-            if (!mouse.isUserActive) {
-                // Smooth organic wandering path using sine waves
-                wanderAngleX += 0.02;
-                wanderAngleY += 0.015;
+        function drawEventHorizon() {
+            ctx.filter = 'none'; // Clear blur for the sharp event horizon
+            ctx.setLineDash([]); // Clear dash
+            
+            // The black sphere
+            ctx.beginPath();
+            ctx.arc(cx, cy, eventHorizonRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#000000';
+            ctx.fill();
 
-                wanderX = (CANVAS_WIDTH / 2) + Math.sin(wanderAngleX) * (CANVAS_WIDTH * 0.42);
-                wanderY = (CANVAS_HEIGHT / 2) + Math.cos(wanderAngleY) * (CANVAS_HEIGHT * 0.35);
-            }
+            // Photon ring (thin bright rim just inside/outside the black hole)
+            ctx.beginPath();
+            ctx.arc(cx, cy, eventHorizonRadius + 1, 0, Math.PI * 2);
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(150, 220, 255, 0.5)'; // Cyan rim
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#96dcff';
+            ctx.stroke();
+            
+            // Reset shadows
+            ctx.shadowBlur = 0;
         }
 
         function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            updateWanderingLight();
+            time += 0.5;
 
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-            }
-            connect();
+            // Smooth parallax translation
+            cx += (targetCx - cx) * 0.05;
+            cy += (targetCy - cy) * 0.05;
+
+            // 1. Draw Space Background
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.filter = 'none';
+            drawBackground();
+            
+            // Draw Meteor Shower
+            drawMeteors();
+
+            // 2. Draw Background Plasma (Additive blending for glow)
+            ctx.globalCompositeOperation = 'screen';
+            
+            // Lensed halos
+            drawRings('haloTop');
+            drawRings('haloBottom');
+            
+            // Back half of the accretion disk
+            drawRings('back');
+
+            // 3. Draw Event Horizon (Normal blending to cover the back plasma)
+            ctx.globalCompositeOperation = 'source-over';
+            drawEventHorizon();
+
+            // 4. Draw Foreground Plasma (Overlaps the Event Horizon)
+            ctx.globalCompositeOperation = 'screen';
+            drawRings('front');
+
             requestAnimationFrame(animate);
         }
 
-        // Start everything securely
+        // Start the engine
         window.onload = () => {
-            try {
-                init();
-                animate();
-            } catch (error) {
-                console.error("Animation Error:", error);
-            }
+            animate();
         };
     </script>
 </body>
